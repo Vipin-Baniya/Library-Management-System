@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Borrows - Library Management System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet"/>
+</head>
+<body class="bg-light">
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
+    <div class="container">
+        <a class="navbar-brand fw-bold" th:href="@{/}"><i class="bi bi-book-fill me-2"></i>LibraryMS</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item"><a class="nav-link" th:href="@{/}">Dashboard</a></li>
+                <li class="nav-item"><a class="nav-link" th:href="@{/books}">Books</a></li>
+                <li class="nav-item"><a class="nav-link" th:href="@{/members}">Members</a></li>
+                <li class="nav-item"><a class="nav-link active" th:href="@{/borrows}">Borrows</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<main class="container py-4">
+    <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show">
+        <i class="bi bi-check-circle-fill me-2"></i><span th:text="${successMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i><span th:text="${errorMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="fw-bold mb-0"><i class="bi bi-arrow-left-right me-2"></i>Borrow Records</h4>
+        <a th:href="@{/borrows/new}" class="btn btn-success btn-sm">
+            <i class="bi bi-plus-circle me-1"></i>Issue Book
+        </a>
+    </div>
+
+    <!-- Filter tabs -->
+    <ul class="nav nav-tabs mb-3">
+        <li class="nav-item">
+            <a th:href="@{/borrows(filter='active')}"
+               th:class="${filter == 'active' ? 'nav-link active' : 'nav-link'}">
+                <i class="bi bi-arrow-up-right-circle me-1"></i>Active
+            </a>
+        </li>
+        <li class="nav-item">
+            <a th:href="@{/borrows(filter='overdue')}"
+               th:class="${filter == 'overdue' ? 'nav-link active' : 'nav-link'}">
+                <i class="bi bi-exclamation-circle me-1"></i>Overdue
+            </a>
+        </li>
+        <li class="nav-item">
+            <a th:href="@{/borrows(filter='returned')}"
+               th:class="${filter == 'returned' ? 'nav-link active' : 'nav-link'}">
+                <i class="bi bi-check-circle me-1"></i>Returned
+            </a>
+        </li>
+    </ul>
+
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <div th:if="${#lists.isEmpty(borrows)}" class="text-center text-muted py-5">
+                <i class="bi bi-inbox fs-1 d-block mb-2"></i>No records found.
+            </div>
+            <table th:unless="${#lists.isEmpty(borrows)}" class="table table-hover table-striped mb-0">
+                <thead class="table-success">
+                <tr>
+                    <th>#</th>
+                    <th>Book</th>
+                    <th>Member</th>
+                    <th>Borrow Date</th>
+                    <th>Due Date</th>
+                    <th>Return Date</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="borrow, iterStat : ${borrows}"
+                    th:class="${borrow.overdue ? 'table-danger' : ''}">
+                    <td th:text="${iterStat.count}"></td>
+                    <td>
+                        <a th:href="@{/books/{id}(id=${borrow.book.id})}"
+                           th:text="${borrow.book.title}" class="text-decoration-none"></a>
+                    </td>
+                    <td>
+                        <a th:href="@{/members/{id}(id=${borrow.member.id})}"
+                           th:text="${borrow.member.name}" class="text-decoration-none"></a>
+                    </td>
+                    <td th:text="${borrow.borrowDate}"></td>
+                    <td th:text="${borrow.dueDate}"></td>
+                    <td th:text="${borrow.returnDate ?: '—'}"></td>
+                    <td>
+                        <span th:class="${'badge bg-' + (borrow.status.name() == 'RETURNED' ? 'success' : borrow.status.name() == 'OVERDUE' ? 'danger' : 'primary')}"
+                              th:text="${borrow.status}"></span>
+                    </td>
+                    <td>
+                        <form th:if="${borrow.status.name() != 'RETURNED'}"
+                              th:action="@{/borrows/{id}/return(id=${borrow.id})}" method="post"
+                              onsubmit="return confirm('Mark this book as returned?')">
+                            <button type="submit" class="btn btn-sm btn-outline-success">
+                                <i class="bi bi-check-circle me-1"></i>Return
+                            </button>
+                        </form>
+                        <span th:if="${borrow.status.name() == 'RETURNED'}" class="text-muted small">Returned</span>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="text-muted small mt-2" th:unless="${#lists.isEmpty(borrows)}">
+        Showing <span th:text="${borrows.size()}"></span> record(s).
+    </div>
+</main>
+
+<footer class="text-center text-muted py-3 mt-4 border-top small">
+    &copy; 2024 Library Management System
+</footer>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
