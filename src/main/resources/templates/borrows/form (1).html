@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Issue Book - Library Management System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet"/>
+</head>
+<body class="bg-light">
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
+    <div class="container">
+        <a class="navbar-brand fw-bold" th:href="@{/}"><i class="bi bi-book-fill me-2"></i>LibraryMS</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item"><a class="nav-link" th:href="@{/}">Dashboard</a></li>
+                <li class="nav-item"><a class="nav-link" th:href="@{/books}">Books</a></li>
+                <li class="nav-item"><a class="nav-link" th:href="@{/members}">Members</a></li>
+                <li class="nav-item"><a class="nav-link active" th:href="@{/borrows}">Borrows</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<main class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-7">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a th:href="@{/borrows}">Borrows</a></li>
+                    <li class="breadcrumb-item active">Issue Book</li>
+                </ol>
+            </nav>
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="bi bi-arrow-up-right-circle me-2"></i>Issue Book to Member
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form th:action="@{/borrows/new}" method="post">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Select Book <span class="text-danger">*</span></label>
+                            <select name="bookId" class="form-select" required>
+                                <option value="" disabled selected>-- Choose an available book --</option>
+                                <option th:each="book : ${availableBooks}"
+                                        th:value="${book.id}"
+                                        th:text="${book.title + ' by ' + book.author + ' (' + book.availableCopies + ' available)'}">
+                                </option>
+                            </select>
+                            <div th:if="${#lists.isEmpty(availableBooks)}" class="text-danger small mt-1">
+                                No books are currently available for borrowing.
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Select Member <span class="text-danger">*</span></label>
+                            <select name="memberId" class="form-select" required>
+                                <option value="" disabled selected>-- Choose an active member --</option>
+                                <option th:each="member : ${activeMembers}"
+                                        th:value="${member.id}"
+                                        th:text="${member.name + ' (' + member.email + ')'}">
+                                </option>
+                            </select>
+                            <div th:if="${#lists.isEmpty(activeMembers)}" class="text-danger small mt-1">
+                                No active members found.
+                            </div>
+                        </div>
+
+                        <div class="alert alert-info small">
+                            <i class="bi bi-info-circle me-1"></i>
+                            The due date will be set to <strong>14 days</strong> from today.
+                            Maximum borrow limit is <strong>5 books</strong> per member.
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-success"
+                                    th:disabled="${#lists.isEmpty(availableBooks) or #lists.isEmpty(activeMembers)}">
+                                <i class="bi bi-check-circle me-1"></i>Issue Book
+                            </button>
+                            <a th:href="@{/borrows}" class="btn btn-secondary">
+                                <i class="bi bi-x-circle me-1"></i>Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<footer class="text-center text-muted py-3 mt-4 border-top small">
+    &copy; 2024 Library Management System
+</footer>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
